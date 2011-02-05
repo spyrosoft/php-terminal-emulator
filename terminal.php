@@ -3,7 +3,15 @@
 	session_start();
 	
 	if (isset($_POST['clear']) AND $_POST['clear'] == 'clear') {
+		if (isset($_SESSION['logged_in'])) {
+			$logged_in = TRUE;
+		} else {
+			$logged_in = FALSE;
+		}
 		session_unset();
+		if ($logged_in) {
+			$_SESSION['logged_in'] = TRUE;
+		}
 	}
 	
 	if ( ! isset($_SESSION['persist_commands']) OR ! isset($_SESSION['commands'])) {
@@ -14,30 +22,52 @@
 	
 	$previous_commands = '';
 	
-	if (isset($_SESSION['persist_commands'])) {
-		foreach ($_SESSION['persist_commands'] as $index => $persist) {
-			if ($persist) {
-				$previous_commands .= $_SESSION['commands'][$index] . '; ';
-			}
+	foreach ($_SESSION['persist_commands'] as $index => $persist) {
+		if ($persist) {
+			$previous_commands .= $_SESSION['commands'][$index] . '; ';
 		}
 	}
 	
 	if (isset($_POST['command'])) {
-		if ($_POST['command'] != '') {
-			exec($previous_commands . $_POST['command'], $response);
-		} else {
-			$response = array();
-		}
-		if (isset($_POST['persist']) AND $_POST['persist'] == 'true') {
-			array_push($_SESSION['persist_commands'], TRUE);
-		} else {
+		$command = $_POST['command'];
+		if ( ! isset($_SESSION['logged_in'])) {
+			//Me mashing my keyboard, aka uncrackable password.
+			//Don't want to accidentally leave this lying around unsecure.
+			$password = 'b*d34bai8(XO>UelgxiX(OEuxi9p,i9iboknX<*X>I<BShbiboetbxRLRBI.d,04d3id0X<*($#X980{I$0d';
+			if ($command == $password) {
+				$_SESSION['logged_in'] = TRUE;
+				$response = array('Welcome, ' . str_replace("\n", '', `whoami`) . '!!');
+			} else {
+				$response = array('Incorrect Password');
+			}
 			array_push($_SESSION['persist_commands'], FALSE);
+			array_push($_SESSION['commands'], 'Password: ');
+			array_push($_SESSION['command_responses'], $response);
+		} else {
+			if ($command != '') {
+				if ($command == 'logout') {
+					unset($_SESSION['logged_in']);
+					$response = array('Successfully Logged Out');
+				} else {
+					exec($previous_commands . $command, $response, $error_code);
+					if ($error_code > 0 AND $response == array()) {
+						$response = array('Error');
+					}
+				}
+			} else {
+				$response = array();
+			}
+			if (isset($_POST['persist']) AND $_POST['persist'] == 'true') {
+				array_push($_SESSION['persist_commands'], TRUE);
+			} else {
+				array_push($_SESSION['persist_commands'], FALSE);
+			}
+			array_push($_SESSION['commands'], $command);
+			array_push($_SESSION['command_responses'], $response);
+			
+			$previous_commands = $_POST['previous_commands'] . $command;
 		}
-		array_push($_SESSION['commands'], $_POST['command']);
-		array_push($_SESSION['command_responses'], $response);
 	}
-	
-	$previous_commands = $_POST['previous_commands'] . $_POST['command'];
 	
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -78,6 +108,8 @@
 			border: 1px solid #00FF00;
 			height: 500px;
 			position: relative;
+			overflow: auto;
+			padding-bottom: 20px;
 		}
 		.terminal .bar {
 			border-bottom: 1px solid #00FF00;
@@ -121,8 +153,10 @@
 					<?php } ?>
 				</div>
 				<?php } ?>
-				$ <input type="text" name="command" id="command" />
-				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="persist_command();" id="persist_button" />
+				$ <?php if ( ! isset($_SESSION['logged_in'])) { ?>Password:
+				<input type="password" name="command" id="command" /><?php } else { ?>
+				<input type="text" name="command" id="command" autocomplete="off" />
+				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="persist_command();" id="persist_button" /><?php } ?>
 			</form>
 			<script type="text/javascript">
 				document.getElementById('command').select();
@@ -140,15 +174,3 @@
 	</form>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
