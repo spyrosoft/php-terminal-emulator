@@ -131,6 +131,7 @@
 			margin: 40px auto;
 			text-align: left;
 			overflow: auto;
+			cursor: text;
 		}
 		.terminal {
 			border: 1px solid #00FF00;
