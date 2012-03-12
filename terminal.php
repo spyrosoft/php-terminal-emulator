@@ -12,8 +12,10 @@
 		$_SESSION['command_responses'] = array();
 	}
 	
+	$toggling_persist = FALSE;
+	
 	if (isset($_POST['persist_command_id']) AND is_numeric($_POST['persist_command_id'])) {
-		$toggling_persist = true;
+		$toggling_persist = TRUE;
 		$persist_command_id = $_POST['persist_command_id'];
 		if (count($_SESSION['persist_commands']) == $persist_command_id) {
 			$toggling_current_persist_command = TRUE;
@@ -131,7 +133,6 @@
 			margin: 40px auto;
 			text-align: left;
 			overflow: auto;
-			cursor: text;
 		}
 		.terminal {
 			border: 1px solid #00FF00;
@@ -176,7 +177,7 @@
 				<?php if (isset($_SESSION['commands'])) { ?>
 				<div>
 					<?php foreach ($_SESSION['commands'] as $index => $command) { ?>
-					<input type="button" value="<?php if ($_SESSION['persist_commands'][$index]) { ?>Un-Persist<? } else { ?>Persist<?php } ?>" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php echo $index; ?>);" class="persist_button" />
+					<input type="button" value="<?php if ($_SESSION['persist_commands'][$index]) { ?>Un-Persist<?php } else { ?>Persist<?php } ?>" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php echo $index; ?>);" class="persist_button" />
 					<pre><?php echo '$ ', $command, "\n"; ?></pre>
 					<?php foreach ($_SESSION['command_responses'][$index] as $value) { ?>
 					<pre><?php echo htmlentities($value), "\n"; ?></pre>
@@ -187,7 +188,7 @@
 				$ <?php if ( ! isset($_SESSION['logged_in'])) { ?>Password:
 				<input type="password" name="command" id="command" /><?php } else { ?>
 				<input type="text" name="command" id="command" autocomplete="off" />
-				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php echo count($_SESSION['commands']); ?>);" class="persist_button" /><?php } ?>
+				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php if (isset($_SESSION['commands'])) { echo count($_SESSION['commands']); } else { echo 0; } ?>);" class="persist_button" /><?php } ?>
 			</form>
 		</div>
 	</div>
