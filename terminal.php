@@ -1,5 +1,9 @@
 <?php
 	
+	//Me mashing my keyboard, aka uncrackable password.
+	//Don't want to accidentally leave this lying around unsecure.
+	$password = 'b*d34bai8(XO>UelgxiX(OEuxi9p,i9iboknX<*X>I<BShbiboetbxRLRBI.d,04d3id0X<*($#X980{I$0d';
+	
 	session_start();
 	
 	if (isset($_POST['clear']) AND $_POST['clear'] == 'clear') {
@@ -39,9 +43,6 @@
 	if (isset($_POST['command'])) {
 		$command = $_POST['command'];
 		if ( ! isset($_SESSION['logged_in'])) {
-			//Me mashing my keyboard, aka uncrackable password.
-			//Don't want to accidentally leave this lying around unsecure.
-			$password = 'b*d34bai8(XO>UelgxiX(OEuxi9p,i9iboknX<*X>I<BShbiboetbxRLRBI.d,04d3id0X<*($#X980{I$0d';
 			if ($command == $password) {
 				$_SESSION['logged_in'] = TRUE;
 				$response = array('Welcome, ' . str_replace("\n", '', `whoami`) . '!!');
@@ -59,7 +60,7 @@
 				} elseif ($command == 'clear') {
 					clear_command();
 				} else {
-					exec($previous_commands . $command, $response, $error_code);
+					exec($previous_commands . $command . ' 2>&1', $response, $error_code);
 					if ($error_code > 0 AND $response == array()) {
 						$response = array('Error');
 					}
@@ -186,21 +187,89 @@
 				</div>
 				<?php } ?>
 				$ <?php if ( ! isset($_SESSION['logged_in'])) { ?>Password:
-				<input type="password" name="command" id="command" /><?php } else { ?>
-				<input type="text" name="command" id="command" autocomplete="off" />
-				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php if (isset($_SESSION['commands'])) { echo count($_SESSION['commands']); } else { echo 0; } ?>);" class="persist_button" /><?php } ?>
+				<input type="password" name="command" id="command" />
+				<?php } else { ?>
+				<input type="text" name="command" id="command" autocomplete="off" onkeydown="return command_keyed_down(event);" />
+				<input type="button" value="Persist" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php if (isset($_SESSION['commands'])) { echo count($_SESSION['commands']); } else { echo 0; } ?>);" class="persist_button" />
+				<?php } ?>
 			</form>
 		</div>
 	</div>
 	<script type="text/javascript">
+		
+		<?php
+			$single_quote_cancelled_commands = array();
+			foreach ($_SESSION['commands'] as $command) {
+				$cancelled_command = str_replace('\\', '\\\\', $command);
+				$cancelled_command = str_replace('\'', '\\\'', $command);
+				$single_quote_cancelled_commands[] = $cancelled_command;
+			}
+		?>
+		
+		var previous_commands = ['', '<?php echo implode('\', \'', $single_quote_cancelled_commands) ?>', ''];
+		
+		var current_command_index = previous_commands.length - 1;
+		
 		document.getElementById('command').select();
 		
 		document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
 		
-		function toggle_persist_command(command_id) {
+		function toggle_persist_command(command_id)
+		{
 			document.getElementById('persist_command_id').value = command_id;
 			document.getElementById('commands').submit();
 		}
+		
+		function command_keyed_down(event)
+		{
+			var key_code = get_key_code(event);
+			if (key_code == 38) { //Up arrow
+				fill_in_previous_command();
+			} else if (key_code == 40) { //Down arrow
+				fill_in_next_command();
+			} else if (key_code == 9) { //Tab
+				
+			} else if (key_code == 13) { //Enter
+				if (event.shiftKey) {
+					toggle_persist_command(<?php
+						if (isset($_SESSION['commands'])) {
+							echo count($_SESSION['commands']);
+						} else {
+							echo 0;
+						}
+					?>);
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		function fill_in_previous_command()
+		{
+			current_command_index--;
+			if (current_command_index < 0) {
+				current_command_index = 0;
+				return;
+			}
+			document.getElementById('command').value = previous_commands[current_command_index];
+		}
+		
+		function fill_in_next_command()
+		{
+			current_command_index++;
+			if (current_command_index >= previous_commands.length) {
+				current_command_index = previous_commands.length - 1;
+				return;
+			}
+			document.getElementById('command').value = previous_commands[current_command_index];
+		}
+		
+		function get_key_code(event)
+		{
+			var event_key_code = event.keyCode;
+			return event_key_code;
+		}
+		
 	</script>
 	<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<input type="hidden" name="clear" value="clear" />
