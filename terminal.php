@@ -175,7 +175,7 @@
 			</div>
 			<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" class="commands" id="commands">
 				<input type="hidden" name="persist_command_id" id="persist_command_id" />
-				<?php if (isset($_SESSION['commands'])) { ?>
+				<?php if ( ! empty($_SESSION['commands'])) { ?>
 				<div>
 					<?php foreach ($_SESSION['commands'] as $index => $command) { ?>
 					<input type="button" value="<?php if ($_SESSION['persist_commands'][$index]) { ?>Un-Persist<?php } else { ?>Persist<?php } ?>" onfocus="this.style.color='#0000FF';" onblur="this.style.color='';" onclick="toggle_persist_command(<?php echo $index; ?>);" class="persist_button" />
@@ -199,10 +199,12 @@
 		
 		<?php
 			$single_quote_cancelled_commands = array();
-			foreach ($_SESSION['commands'] as $command) {
-				$cancelled_command = str_replace('\\', '\\\\', $command);
-				$cancelled_command = str_replace('\'', '\\\'', $command);
-				$single_quote_cancelled_commands[] = $cancelled_command;
+			if ( ! empty( $_SESSION['commands'] ) ) {
+				foreach ($_SESSION['commands'] as $command) {
+					$cancelled_command = str_replace('\\', '\\\\', $command);
+					$cancelled_command = str_replace('\'', '\\\'', $command);
+					$single_quote_cancelled_commands[] = $cancelled_command;
+				}
 			}
 		?>
 		
