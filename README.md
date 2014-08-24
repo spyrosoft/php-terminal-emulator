@@ -1,10 +1,9 @@
 PHP Terminal Emulator
 =====================
 
-This is designed to be a stand-alone Terminal Emulator useful when you
+This is designed to be a stand-alone Terminal Emulator useful for when you
 don't have ssh access.
-It is limited to the permissions of the user PHP is set up to run commands
-under, generally _www.
+It is limited to the permissions of the PHP user.
 
 Installation
 ------------
