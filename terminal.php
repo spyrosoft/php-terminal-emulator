@@ -17,6 +17,7 @@
 	}
 	
 	$toggling_persist = FALSE;
+	$toggling_current_persist_command = FALSE;
 	
 	if (isset($_POST['persist_command_id']) AND is_numeric($_POST['persist_command_id'])) {
 		$toggling_persist = TRUE;
